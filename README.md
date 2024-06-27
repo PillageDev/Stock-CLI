@@ -10,4 +10,4 @@
 - getstockquote <symbol> - Get current pricing info and changes about a stock
 - status <exchange> - Get the current market status for an exchange
 - symbols <exchange> -limit [limit] - Get stock symbols for a specific exchange
-- help [command] - Help with commands
+- help - Help with commands
