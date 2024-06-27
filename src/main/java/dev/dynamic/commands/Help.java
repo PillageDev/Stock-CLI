@@ -16,16 +16,12 @@ public class Help extends Command {
 
     @Override
     public void execute(String[] args) {
-        if (args.length == 0) {
-            System.out.println("Available commands:");
-            Registry.getCommands().forEach(command -> {
-                String requiredArgsFormatted = formatArgs(command.getRequiredArgs(), "<", ">");
-                String optionalArgsFormatted = formatArgs(command.getOptionalArgs(), "[", "]");
-                System.out.println(command.getCommand() + " " + requiredArgsFormatted + optionalArgsFormatted + "- " + command.getDescription());
-            });
-        } else {
-            // Additional logic for handling specific command help
-        }
+        System.out.println("Available commands:");
+        Registry.getCommands().forEach(command -> {
+            String requiredArgsFormatted = formatArgs(command.getRequiredArgs(), "<", ">");
+            String optionalArgsFormatted = formatArgs(command.getOptionalArgs(), "[", "]");
+            System.out.println(command.getCommand() + " " + requiredArgsFormatted + optionalArgsFormatted + "- " + command.getDescription());
+        });
     }
 
     private String formatArgs(String[] args, String leftBracket, String rightBracket) {
@@ -41,7 +37,7 @@ public class Help extends Command {
 
     @Override
     public String[] getOptionalArgs() {
-        return new String[] { "command" };
+        return new String[0];
     }
 
     @Override
