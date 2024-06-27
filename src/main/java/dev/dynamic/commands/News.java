@@ -29,17 +29,18 @@ public class News extends Command {
             System.out.println("Headline: " + news.getHeadline());
             System.out.println("Source: " + news.getSource());
             System.out.println("URL: " + news.getUrl());
-            System.out.println("Summary: " + news.getSummary());
+            System.out.println("Summary: " + news.getSummary().replaceAll("<.*?>", "")); // Get rid of html tags
             System.out.println("Related: " + news.getRelated());
             System.out.println("Image: " + news.getImage());
             System.out.println("Category: " + news.getCategory());
+            System.out.println("Datetime: " + news.getDatetime());
             System.out.println();
         });
     }
 
     @Override
     public String[] getRequiredArgs() {
-        return new String[0];
+        return new String[] { "category" };
     }
 
     @Override

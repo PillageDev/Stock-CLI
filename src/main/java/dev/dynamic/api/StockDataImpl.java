@@ -189,12 +189,40 @@ public class StockDataImpl implements StockData {
 
     @Override
     public List<News> getNews(NewsCategory category) {
-        return List.of();
-    }
+        String endpoint = "news?category=" + category.toString().toLowerCase();
+        String json;
+        try {
+            json = getRawJson(endpoint);
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            return null;
+        }
 
-    @Override
-    public List<News> getCompanyNews(String symbol, SearchDate from, SearchDate to) {
-        return List.of();
+        List<News> newsList = new ArrayList<>();
+
+        try {
+            JsonNode rootNode = mapper.readTree(json);
+
+            for (JsonNode node : rootNode) {
+                News news = new News();
+                news.setCategory(node.get("category").asText());
+                news.setDatetime(node.get("datetime").asText());
+                news.setHeadline(node.get("headline").asText());
+                news.setId(node.get("id").asText());
+                news.setImage(node.get("image").asText());
+                news.setRelated(node.get("related").asText());
+                news.setSource(node.get("source").asText());
+                news.setSummary(node.get("summary").asText());
+                news.setUrl(node.get("url").asText());
+
+                newsList.add(news);
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return newsList;
     }
 
     @Override
@@ -340,6 +368,5 @@ public class StockDataImpl implements StockData {
             e.printStackTrace();
             return null;
         }
-
     }
 }

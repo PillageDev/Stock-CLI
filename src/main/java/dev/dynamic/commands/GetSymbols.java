@@ -12,7 +12,7 @@ public class GetSymbols extends Command {
 
     @Override
     public String getDescription() {
-        return "";
+        return "Get stock symbols for a specific exchange";
     }
 
     @Override

@@ -11,7 +11,6 @@ public interface StockData {
     MarketHolidays getMarketHolidays(String exchange);
     CompanyProfile getCompanyProfile(String symbol);
     List<News> getNews(NewsCategory category);
-    List<News> getCompanyNews(String symbol, SearchDate from, SearchDate to);
     List<Recommendations> getRecommendations(String symbol);
     StockQuote getStockQuote(String symbol);
     Financials getFinancials(String symbol);
@@ -21,12 +20,5 @@ public interface StockData {
         FOREX,
         CRYPTO,
         MERGER
-    }
-
-    @Data
-    class SearchDate {
-        private int year;
-        private int month;
-        private int day;
     }
 }

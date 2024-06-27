@@ -1,5 +1,6 @@
 package dev.dynamic.commands;
 
+import lombok.Getter;
 import org.reflections.Reflections;
 
 import java.lang.reflect.InvocationTargetException;
@@ -8,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Registry {
+    @Getter
     private static final List<Command> commands = new ArrayList<>();
 
     public static void registerAll() {
