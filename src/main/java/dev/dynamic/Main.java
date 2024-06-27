@@ -3,6 +3,8 @@ package dev.dynamic;
 import dev.dynamic.api.StockData;
 import dev.dynamic.api.StockDataImpl;
 import dev.dynamic.commands.Registry;
+import lombok.Getter;
+import lombok.Setter;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Terminal;
@@ -14,6 +16,10 @@ import java.util.function.Consumer;
 
 public class Main {
     private static Consumer<String> consumer;
+
+    @Setter
+    @Getter
+    private static String webSocketSymbol;
 
     public static void main(String[] args) throws IOException {
         Registry.registerAll();

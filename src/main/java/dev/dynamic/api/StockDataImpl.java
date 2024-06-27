@@ -131,7 +131,33 @@ public class StockDataImpl implements StockData {
 
     @Override
     public StockQuote getStockQuote(String symbol) {
-        return null;
+        String endpoint = "quote?symbol=" + symbol;
+        String json;
+        try {
+            json = getRawJson(endpoint);
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        StockQuote quote = new StockQuote();
+
+        try {
+            JsonNode rootNode = mapper.readTree(json);
+            quote.setSymbol(symbol);
+            quote.setOpenPrice(rootNode.get("o").asDouble());
+            quote.setHighPrice(rootNode.get("h").asDouble());
+            quote.setLowPrice(rootNode.get("l").asDouble());
+            quote.setCurrentPrice(rootNode.get("c").asDouble());
+            quote.setPreviousClose(rootNode.get("pc").asDouble());
+            quote.setChange(rootNode.get("d").asDouble());
+            quote.setPercentChange(rootNode.get("dp").asDouble() * 100);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return quote;
     }
 
     @Override

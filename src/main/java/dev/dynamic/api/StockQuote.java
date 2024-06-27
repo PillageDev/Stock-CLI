@@ -11,4 +11,5 @@ public class StockQuote {
     private double lowPrice;
     private double openPrice;
     private double previousClose;
+    private String symbol;
 }
