@@ -41,7 +41,7 @@ public class StockDataImpl implements StockData {
                     result.setDescription(node.get("description").asText());
                     result.setDisplaySymbol(node.get("displaySymbol").asText());
                     result.setSymbol(node.get("symbol").asText());
-                    result.setType(node.get("type").asText());
+                    result.setType(node.get("type").asText().isEmpty() ? "N/A" : node.get("type").asText());
                     result.setQuery(keyword);
                     results.add(result);
                 }
