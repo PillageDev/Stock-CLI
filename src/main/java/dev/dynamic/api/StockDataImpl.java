@@ -13,7 +13,7 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 
-class StockDataImpl implements StockData {
+public class StockDataImpl implements StockData {
     private static final String BASE_URL = "https://finnhub.io/api/v1/";
     private static final String API_KEY = "cpum7e1r01qhicnal3pgcpum7e1r01qhicnal3q0";
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -26,7 +26,7 @@ class StockDataImpl implements StockData {
             json = getRawJson(endpoint);
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
-            return List.of();
+            return null;
         }
 
         List<StockSearchResult> results = new ArrayList<>();
@@ -48,7 +48,7 @@ class StockDataImpl implements StockData {
             }
         } catch (JsonProcessingException e) {
             e.printStackTrace();
-            return List.of();
+            return null;
         }
 
         return results;
@@ -85,8 +85,48 @@ class StockDataImpl implements StockData {
     }
 
     @Override
-    public Recommendations getRecommendations(String symbol) {
-        return null;
+    public List<Recommendations> getRecommendations(String symbol) {
+        String endpoint = "stock/recommendation?symbol=" + symbol;
+        String json;
+        try {
+            json = getRawJson(endpoint);
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        List<Recommendations> recommendations = new ArrayList<>();
+
+        try {
+            JsonNode rootNode = mapper.readTree(json);
+            if (rootNode.isArray()) {
+                for (JsonNode node : rootNode) {
+                    int buy = node.get("buy").asInt();
+                    int hold = node.get("hold").asInt();
+                    String period = node.get("period").asText();
+                    int sell = node.get("sell").asInt();
+                    int strongBuy = node.get("strongBuy").asInt();
+                    int strongSell = node.get("strongSell").asInt();
+                    String foundSymbol = node.get("symbol").asText();
+
+                    Recommendations recommendation = new Recommendations();
+                    recommendation.setBuyRecommendations(buy);
+                    recommendation.setHoldRecommendations(hold);
+                    recommendation.setPeriod(period);
+                    recommendation.setSellRecommendations(sell);
+                    recommendation.setStrongBuyRecommendations(strongBuy);
+                    recommendation.setStrongSellRecommendations(strongSell);
+                    recommendation.setSymbol(foundSymbol);
+
+                    recommendations.add(recommendation);
+                }
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return recommendations;
     }
 
     @Override

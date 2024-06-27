@@ -12,7 +12,7 @@ public interface StockData {
     CompanyProfile getCompanyProfile(String symbol);
     List<News> getNews(NewsCategory category);
     List<News> getCompanyNews(String symbol, SearchDate from, SearchDate to);
-    Recommendations getRecommendations(String symbol);
+    List<Recommendations> getRecommendations(String symbol);
     StockQuote getStockQuote(String symbol);
     Financials getFinancials(String symbol);
 
