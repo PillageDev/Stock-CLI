@@ -1,5 +1,6 @@
 package dev.dynamic.commands;
 
+import dev.dynamic.Main;
 import dev.dynamic.api.StockWebSocketClient;
 
 import java.net.URI;
@@ -19,14 +20,27 @@ public class ListenForEvents extends Command {
     @Override
     public void execute(String[] args) {
         System.out.println("Connecting to websocket...");
+        System.out.println("Type 'exit' to disconnect from the websocket");
 
+        StockWebSocketClient client = null;
         try {
+            Main.setWebSocketSymbol(args[0]);
             String uri = "wss://ws.finnhub.io?token=cpum7e1r01qhicnal3pgcpum7e1r01qhicnal3q0";
-            StockWebSocketClient client = new StockWebSocketClient(new URI(uri));
+            client = new StockWebSocketClient(new URI(uri));
             client.connectBlocking();
         } catch (URISyntaxException | InterruptedException e) {
             e.printStackTrace();
         }
+
+        StockWebSocketClient finalClient = client;
+        Main.overrideNextConsoleInput((line) -> {
+            if ("exit".equalsIgnoreCase(line)) {
+                System.out.println("Disconnecting from websocket...");
+                if (finalClient != null)
+                    finalClient.close();
+                Main.overrideNextConsoleInput(null);
+            }
+        });
     }
 
     @Override

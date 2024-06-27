@@ -1,7 +1,6 @@
 package dev.dynamic.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -11,7 +10,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class StockDataImpl implements StockData {
     private static final String BASE_URL = "https://finnhub.io/api/v1/";
@@ -162,7 +163,45 @@ public class StockDataImpl implements StockData {
 
     @Override
     public Financials getFinancials(String symbol) {
-        return null;
+        String endpoint = "stock/metric?symbol=" + symbol + "&metric=all";
+        String json;
+        try {
+            json = getRawJson(endpoint);
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        JsonNode rootNode = null;
+        try {
+            rootNode = mapper.readTree(json);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        Financials financials = new Financials();
+        financials.setMetricType(rootNode.get("metricType").asText());
+        financials.setSymbol(rootNode.get("symbol").asText());
+
+        JsonNode metricsNode = rootNode.get("metric");
+        Map<String, Double> metrics = new HashMap<>();
+        metricsNode.fieldNames().forEachRemaining(key -> metrics.put(key, metricsNode.get(key).asDouble()));
+        financials.setMetrics(metrics);
+
+        JsonNode seriesNode = rootNode.get("series").get("annual");
+        Map<String, Financials.RatioEntry> ratios = new HashMap<>();
+        seriesNode.fieldNames().forEachRemaining(key -> {
+            JsonNode ratioArrayNode = seriesNode.get(key);
+            for (JsonNode ratioNode : ratioArrayNode) {
+                Financials.RatioEntry ratioEntry = new Financials.RatioEntry();
+                ratioEntry.setPeriod(ratioNode.get("period").asText());
+                ratioEntry.setNetProfitMargin(ratioNode.get("v").asDouble());
+                ratios.put(key, ratioEntry);
+            }
+        });
+        financials.setRatios(ratios);
+
+        return financials;
     }
 
     private String getRawJson(String endpoint) throws IOException, URISyntaxException {
