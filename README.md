@@ -1,0 +1,13 @@
+## Commands
+- recommendations <symbol> -limit [limit] - Get recommendations for a stock
+- clear - Clear the console output
+- search <keyword> -limit [limit] - Search for a stock by keyword (name, symbol, etc.)
+- listen <symbol> - Listen to stock events in real-time
+- financials <symbol> - Get financials for a stock symbol
+- company <symbol> - Get a company's profile by stock symbol
+- holiday <exchange> - Get the market holidays for a specific exchange
+- news <category> - Get the latest news for a news category
+- getstockquote <symbol> - Get current pricing info and changes about a stock
+- status <exchange> - Get the current market status for an exchange
+- symbols <exchange> -limit [limit] - Get stock symbols for a specific exchange
+- help [command] - Help with commands
