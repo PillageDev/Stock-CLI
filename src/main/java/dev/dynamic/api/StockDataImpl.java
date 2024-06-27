@@ -57,22 +57,134 @@ public class StockDataImpl implements StockData {
 
     @Override
     public List<StockSymbol> getStockSymbols(String exchange) {
-        return List.of();
+        String endpoint = "stock/symbol?exchange=" + exchange;
+        String json;
+        try {
+            json = getRawJson(endpoint);
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+
+        List<StockSymbol> symbols = new ArrayList<>();
+
+        try {
+            JsonNode rootNode = mapper.readTree(json);
+            if (rootNode.isArray()) {
+                for (JsonNode node : rootNode) {
+                    StockSymbol symbol = new StockSymbol();
+                    symbol.setCurrency(node.get("currency").asText());
+                    symbol.setDescription(node.get("description").asText());
+                    symbol.setDisplaySymbol(node.get("displaySymbol").asText());
+                    symbol.setSymbol(node.get("symbol").asText());
+                    symbol.setType(node.get("type").asText());
+                    symbols.add(symbol);
+                }
+            }
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+
+        return symbols;
     }
 
     @Override
     public MarketStatus getMarketStatus(String exchange) {
-        return null;
+        String endpoint = "stock/market-status?exchange=" + exchange;
+        String json;
+        try {
+            json = getRawJson(endpoint);
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        try {
+            JsonNode rootNode = mapper.readTree(json);
+            MarketStatus marketStatus = new MarketStatus();
+            marketStatus.setExchange(rootNode.get("exchange").asText());
+            marketStatus.setHoliday(rootNode.get("holiday").asText());
+            marketStatus.setOpen(rootNode.get("isOpen").asBoolean());
+            marketStatus.setSession(rootNode.get("session").asText());
+            marketStatus.setTimezone(rootNode.get("timezone").asText());
+            marketStatus.setTimestamp(rootNode.get("t").asLong());
+            return marketStatus;
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            return null;
+        }
     }
 
     @Override
     public MarketHolidays getMarketHolidays(String exchange) {
-        return null;
+        String endpoint = "stock/market-holiday?exchange=" + exchange;
+        String json;
+        try {
+            json = getRawJson(endpoint);
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        MarketHolidays marketHolidays = new MarketHolidays();
+
+        try {
+            JsonNode rootNode = mapper.readTree(json);
+            marketHolidays.setExchange(rootNode.get("exchange").asText());
+            marketHolidays.setTimezone(rootNode.get("timezone").asText());
+
+            JsonNode dataNode = rootNode.get("data");
+            List<MarketHolidays.Holiday> holidays = new ArrayList<>();
+
+            for (JsonNode node : dataNode) {
+                MarketHolidays.Holiday holiday = new MarketHolidays.Holiday();
+                holiday.setAtDate(node.get("atDate").asText());
+                holiday.setEventName(node.get("eventName").asText());
+                holiday.setTradingHour(node.get("tradingHour").asText());
+                holidays.add(holiday);
+            }
+
+            marketHolidays.setHolidays(holidays);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return marketHolidays;
     }
 
     @Override
     public CompanyProfile getCompanyProfile(String symbol) {
-        return null;
+        String endpoint = "stock/profile2?symbol=" + symbol;
+        String json;
+        try {
+            json = getRawJson(endpoint);
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        CompanyProfile companyProfile = new CompanyProfile();
+        try {
+            JsonNode rootNode = mapper.readTree(json);
+            companyProfile.setCountry(rootNode.get("country").asText());
+            companyProfile.setCurrency(rootNode.get("currency").asText());
+            companyProfile.setExchange(rootNode.get("exchange").asText());
+            companyProfile.setIpo(rootNode.get("ipo").asText());
+            companyProfile.setMarketCapitalization(rootNode.get("marketCapitalization").asText());
+            companyProfile.setName(rootNode.get("name").asText());
+            companyProfile.setPhone(rootNode.get("phone").asText());
+            companyProfile.setShareOutstanding(rootNode.get("shareOutstanding").asText());
+            companyProfile.setTicker(rootNode.get("ticker").asText());
+            companyProfile.setWeburl(rootNode.get("weburl").asText());
+            companyProfile.setLogo(rootNode.get("logo").asText());
+            companyProfile.setFinnhubIndustry(rootNode.get("finnhubIndustry").asText());
+
+            return companyProfile;
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
@@ -172,36 +284,36 @@ public class StockDataImpl implements StockData {
             return null;
         }
 
-        JsonNode rootNode = null;
         try {
-            rootNode = mapper.readTree(json);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            JsonNode rootNode = mapper.readTree(json);
+            Financials financials = new Financials();
+
+            financials.setMetricType(rootNode.get("metricType").asText());
+            financials.setSymbol(rootNode.get("symbol").asText());
+
+            JsonNode metricsNode = rootNode.get("metric");
+
+            Map<String, Double> metrics = new HashMap<>();
+            metricsNode.fieldNames().forEachRemaining(key -> metrics.put(key, metricsNode.get(key).asDouble()));
+            financials.setMetrics(metrics);
+
+            JsonNode seriesNode = rootNode.get("series").get("annual");
+
+            Map<String, Financials.RatioEntry> ratios = new HashMap<>();
+            seriesNode.fieldNames().forEachRemaining(key -> {
+                JsonNode ratioArrayNode = seriesNode.get(key);
+                for (JsonNode ratioNode : ratioArrayNode) {
+                    Financials.RatioEntry ratioEntry = new Financials.RatioEntry();
+                    ratioEntry.setPeriod(ratioNode.get("period").asText());
+                    ratioEntry.setNetProfitMargin(ratioNode.get("v").asDouble());
+                    ratios.put(key, ratioEntry);
+                }
+            });
+            financials.setRatios(ratios);
+            return financials;
+        } catch (JsonProcessingException | NullPointerException e) {
+            return null;
         }
-
-        Financials financials = new Financials();
-        financials.setMetricType(rootNode.get("metricType").asText());
-        financials.setSymbol(rootNode.get("symbol").asText());
-
-        JsonNode metricsNode = rootNode.get("metric");
-        Map<String, Double> metrics = new HashMap<>();
-        metricsNode.fieldNames().forEachRemaining(key -> metrics.put(key, metricsNode.get(key).asDouble()));
-        financials.setMetrics(metrics);
-
-        JsonNode seriesNode = rootNode.get("series").get("annual");
-        Map<String, Financials.RatioEntry> ratios = new HashMap<>();
-        seriesNode.fieldNames().forEachRemaining(key -> {
-            JsonNode ratioArrayNode = seriesNode.get(key);
-            for (JsonNode ratioNode : ratioArrayNode) {
-                Financials.RatioEntry ratioEntry = new Financials.RatioEntry();
-                ratioEntry.setPeriod(ratioNode.get("period").asText());
-                ratioEntry.setNetProfitMargin(ratioNode.get("v").asDouble());
-                ratios.put(key, ratioEntry);
-            }
-        });
-        financials.setRatios(ratios);
-
-        return financials;
     }
 
     private String getRawJson(String endpoint) throws IOException, URISyntaxException {
@@ -210,18 +322,24 @@ public class StockDataImpl implements StockData {
         HttpURLConnection connection = (HttpURLConnection) new URI(url).toURL().openConnection();
         connection.setRequestMethod("GET");
 
-        InputStream inputStream = connection.getInputStream();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        StringBuilder result = new StringBuilder();
-        String line;
+        try {
+            InputStream inputStream = connection.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder result = new StringBuilder();
+            String line;
 
-        while ((line = reader.readLine()) != null) {
-            result.append(line);
+            while ((line = reader.readLine()) != null) {
+                result.append(line);
+            }
+
+            reader.close();
+            connection.disconnect();
+
+            return result.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
 
-        reader.close();
-        connection.disconnect();
-
-        return result.toString();
     }
 }
